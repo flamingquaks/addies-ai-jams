@@ -223,16 +223,21 @@
         .replace(/>/g, '&gt;');
     }
 
-    // Only allow http(s) URLs — block javascript:, data:, vbscript:, etc.
+    // Allow http(s) absolute URLs and safe relative paths (audio/ folder).
+    // Blocks javascript:, data:, vbscript:, and any other protocol injection.
     function safeUrl(str) {
       if (!str) return '';
+      // Allow absolute http(s) URLs
       try {
         const u = new URL(str);
-        if (u.protocol !== 'https:' && u.protocol !== 'http:') return '';
+        if (u.protocol === 'https:' || u.protocol === 'http:') return str;
+        return ''; // block data:, javascript:, etc.
       } catch (_) {
-        return ''; // relative or invalid URLs rejected
+        // Not an absolute URL — allow safe relative paths only
+        // Must be a clean relative path: letters, digits, /, -, _, . only
+        if (/^[a-zA-Z0-9/_\-\.]+$/.test(str)) return str;
+        return '';
       }
-      return str;
     }
 
     // ── Loader ────────────────────────────────────────────────────────
