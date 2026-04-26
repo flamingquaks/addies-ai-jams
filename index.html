@@ -282,7 +282,7 @@
           if (mediaUrl) {
             if (video || isVideoFile) {
               mediaHtml = `<div class="media-wrap">
-                <video controls preload="none" playsinline>
+                <video controls preload="metadata" playsinline>
                   <source src="${escAttr(mediaUrl)}">
                   <a href="${escAttr(mediaUrl)}">Download video</a>
                 </video>
