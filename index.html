@@ -93,8 +93,8 @@
       margin-bottom: 1.1rem;
     }
 
-    /* ── Audio player ── */
-    .audio-wrap {
+    /* ── Media player (audio + video) ── */
+    .media-wrap {
       margin-bottom: 1.1rem;
     }
 
@@ -106,7 +106,15 @@
       accent-color: #a855f7;
     }
 
-    .no-audio {
+    video {
+      width: 100%;
+      border-radius: 12px;
+      outline: none;
+      background: #000;
+      max-height: 400px;
+    }
+
+    .no-media {
       font-size: 0.85rem;
       color: #4a4a6a;
       font-style: italic;
@@ -248,21 +256,37 @@
         }
 
         container.innerHTML = songs.map((song, i) => {
-          const title   = escText(song.title   || 'Untitled Song');
-          const audio   = safeUrl(song.audio   || '');
-          const lyrics  = safeUrl(song.lyrics  || '');
+          const title    = escText(song.title    || 'Untitled Song');
+          const audio    = safeUrl(song.audio    || '');
+          const video    = safeUrl(song.video    || '');
+          const lyrics   = safeUrl(song.lyrics   || '');
           const original = safeUrl(song.original || '');
 
-          // Use escAttr() for every value placed inside an HTML attribute.
-          const audioHtml = audio
-            ? `<div class="audio-wrap">
-                 <audio controls preload="none">
-                   <source src="${escAttr(audio)}">
-                   Your browser does not support the audio element.
-                   <a href="${escAttr(audio)}">Download audio</a>
-                 </audio>
-               </div>`
-            : `<div class="audio-wrap"><span class="no-audio">Audio coming soon</span></div>`;
+          // Detect file type from extension
+          const isVideoFile = /\.(mp4|mov|webm|m4v)(\?|$)/i.test(video || audio);
+          const isAudioFile = /\.(mp3|m4a|wav|ogg|aac)(\?|$)/i.test(audio);
+
+          // Prefer explicit video field; fall back to audio field
+          const mediaUrl = video || audio;
+
+          let mediaHtml = `<div class="media-wrap"><span class="no-media">Media coming soon</span></div>`;
+          if (mediaUrl) {
+            if (video || isVideoFile) {
+              mediaHtml = `<div class="media-wrap">
+                <video controls preload="none" playsinline>
+                  <source src="${escAttr(mediaUrl)}">
+                  <a href="${escAttr(mediaUrl)}">Download video</a>
+                </video>
+              </div>`;
+            } else {
+              mediaHtml = `<div class="media-wrap">
+                <audio controls preload="none">
+                  <source src="${escAttr(mediaUrl)}">
+                  <a href="${escAttr(mediaUrl)}">Download audio</a>
+                </audio>
+              </div>`;
+            }
+          }
 
           const lyricsBtn = lyrics
             ? `<a href="${escAttr(lyrics)}" target="_blank" rel="noopener noreferrer" class="link-btn lyrics">📄 Lyrics</a>`
@@ -276,7 +300,7 @@
             <div class="song-card">
               <div class="song-number">Track ${i + 1}</div>
               <div class="song-title">${title}</div>
-              ${audioHtml}
+              ${mediaHtml}
               <div class="song-links">${lyricsBtn}${originalBtn}</div>
             </div>`;
         }).join('');

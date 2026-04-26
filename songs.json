@@ -1,3 +1,39 @@
 {
-  "songs": []
+  "songs": [
+    {
+      "title": "Prompt Pipelines",
+      "video": "audio/prompt-pipelines.mp4",
+      "audio": "",
+      "lyrics": "",
+      "original": ""
+    },
+    {
+      "title": "Untitled",
+      "video": "audio/untitled.mp4",
+      "audio": "",
+      "lyrics": "",
+      "original": ""
+    },
+    {
+      "title": "Bass Spillage",
+      "video": "audio/bass-spillage.mp4",
+      "audio": "",
+      "lyrics": "",
+      "original": ""
+    },
+    {
+      "title": "QuackMoo",
+      "video": "audio/quackmoo.mp4",
+      "audio": "",
+      "lyrics": "",
+      "original": ""
+    },
+    {
+      "title": "Stone Beneath River",
+      "video": "audio/stone-beneath-river.mp4",
+      "audio": "",
+      "lyrics": "",
+      "original": ""
+    }
+  ]
 }

@@ -24,6 +24,7 @@ The site reads `songs.json` directly. Each song is an object in the `songs` arra
   "songs": [
     {
       "title": "Song Name Here",
+      "video": "audio/filename.mp4",
       "audio": "audio/filename.mp3",
       "lyrics": "https://docs.google.com/document/d/...",
       "original": "https://drive.google.com/file/d/..."
@@ -33,7 +34,8 @@ The site reads `songs.json` directly. Each song is an object in the `songs` arra
 ```
 
 - `title` — display name shown on the site
-- `audio` — path to mp3 in the `audio/` folder (e.g. `audio/my-song.mp3`)
+- `video` — path to mp4 in the `audio/` folder (e.g. `audio/my-song.mp4`). If set, the site renders a video player. Takes precedence over `audio`.
+- `audio` — path to mp3 in the `audio/` folder (e.g. `audio/my-song.mp3`). Used when there is no video. Can be empty string `""`.
 - `lyrics` — link to a Google Doc with the lyrics (can be empty string `""`)
 - `original` — link to original recording on Google Drive or Dropbox (can be empty string `""`)
 
@@ -41,8 +43,9 @@ The site reads `songs.json` directly. Each song is an object in the `songs` arra
 
 When Addie says "add a song" or "add [song name]":
 
-1. Ask for the mp3 file if not already in `audio/` — Addie will drop it into `~/projects/addies-ai-jams/audio/`
+1. Ask for the mp4/mp3 file if not already in `audio/` — Addie will drop it into `~/projects/addies-ai-jams/audio/`
 2. Ask for the song title, lyrics link (optional), and original recording link (optional)
+   - For Suno songs: use the `video` field for mp4 files, `audio` field for mp3-only songs
 3. Add the song to the END of the `songs` array in `songs.json`
 4. Commit and push:
    ```bash
