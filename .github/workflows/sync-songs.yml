@@ -18,16 +18,16 @@ jobs:
 
       - name: Fetch sheet and update songs.json
         env:
-          SHEET_CSV_URL: ${{ vars.SHEET_CSV_URL }}
+          SHEET_CSV_URL: ${{ secrets.SHEET_CSV_URL }}
         run: |
           python3 - << 'PYEOF'
           import csv, json, os, sys, urllib.request
 
           url = os.environ.get("SHEET_CSV_URL", "").strip()
           if not url:
-              print("ERROR: SHEET_CSV_URL is not set.")
-              print("Go to: Settings → Secrets and variables → Actions → Variables")
-              print("Add a variable named SHEET_CSV_URL with your published Google Sheet CSV link.")
+              print("ERROR: SHEET_CSV_URL secret is not set.")
+              print("Go to: Settings → Secrets and variables → Actions → Secrets")
+              print("Add a secret named SHEET_CSV_URL with your published Google Sheet CSV link.")
               sys.exit(1)
 
           # Security: only allow https:// URLs (blocks file://, localhost, etc.)
