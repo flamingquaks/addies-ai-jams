@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Addie's AI Jams</title>
+  <!-- Content Security Policy: block inline injection, only allow media from http(s) sources -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; media-src https: http: blob:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'none';">`
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -193,6 +195,40 @@
   <footer>MADE WITH SUNO AI &nbsp;✦&nbsp; UPDATED FROM GOOGLE SHEETS</footer>
 
   <script>
+    // ── Security helpers ──────────────────────────────────────────────
+
+    // Escape a string for safe insertion as HTML *text content*.
+    function escText(str) {
+      const d = document.createElement('div');
+      d.appendChild(document.createTextNode(String(str)));
+      return d.innerHTML;
+    }
+
+    // Escape a string for safe insertion inside an HTML *attribute value*.
+    // Handles the additional cases that innerHTML serialisation can miss.
+    function escAttr(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#x27;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+    }
+
+    // Only allow http(s) URLs — block javascript:, data:, vbscript:, etc.
+    function safeUrl(str) {
+      if (!str) return '';
+      try {
+        const u = new URL(str);
+        if (u.protocol !== 'https:' && u.protocol !== 'http:') return '';
+      } catch (_) {
+        return ''; // relative or invalid URLs rejected
+      }
+      return str;
+    }
+
+    // ── Loader ────────────────────────────────────────────────────────
+
     async function loadSongs() {
       const container = document.getElementById('songs-container');
 
@@ -212,27 +248,28 @@
         }
 
         container.innerHTML = songs.map((song, i) => {
-          const title = esc(song.title || 'Untitled Song');
-          const audio = esc(song.audio || '');
-          const lyrics = esc(song.lyrics || '');
-          const original = esc(song.original || '');
+          const title   = escText(song.title   || 'Untitled Song');
+          const audio   = safeUrl(song.audio   || '');
+          const lyrics  = safeUrl(song.lyrics  || '');
+          const original = safeUrl(song.original || '');
 
+          // Use escAttr() for every value placed inside an HTML attribute.
           const audioHtml = audio
             ? `<div class="audio-wrap">
                  <audio controls preload="none">
-                   <source src="${audio}">
+                   <source src="${escAttr(audio)}">
                    Your browser does not support the audio element.
-                   <a href="${audio}">Download audio</a>
+                   <a href="${escAttr(audio)}">Download audio</a>
                  </audio>
                </div>`
             : `<div class="audio-wrap"><span class="no-audio">Audio coming soon</span></div>`;
 
           const lyricsBtn = lyrics
-            ? `<a href="${lyrics}" target="_blank" rel="noopener" class="link-btn lyrics">📄 Lyrics</a>`
+            ? `<a href="${escAttr(lyrics)}" target="_blank" rel="noopener noreferrer" class="link-btn lyrics">📄 Lyrics</a>`
             : '';
 
           const originalBtn = original
-            ? `<a href="${original}" target="_blank" rel="noopener" class="link-btn original">🎙️ Original Recording</a>`
+            ? `<a href="${escAttr(original)}" target="_blank" rel="noopener noreferrer" class="link-btn original">🎙️ Original Recording</a>`
             : '';
 
           return `
@@ -252,12 +289,6 @@
           </div>`;
         console.error(err);
       }
-    }
-
-    function esc(str) {
-      const d = document.createElement('div');
-      d.appendChild(document.createTextNode(str));
-      return d.innerHTML;
     }
 
     loadSongs();
