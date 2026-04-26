@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Addie's AI Jams</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: #08080f;
+      color: #e2e2f0;
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    header {
+      text-align: center;
+      padding: 4rem 1rem 2.5rem;
+      background: radial-gradient(ellipse at top, #1e0a38 0%, #08080f 65%);
+      border-bottom: 1px solid #1c1c30;
+    }
+
+    .header-icon {
+      font-size: 2.5rem;
+      margin-bottom: 0.75rem;
+      display: block;
+      animation: pulse 3s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.08); }
+    }
+
+    h1 {
+      font-size: clamp(2rem, 5vw, 3rem);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #c084fc 0%, #f472b6 50%, #fb923c 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.6rem;
+    }
+
+    .subtitle {
+      color: #6b6b90;
+      font-size: 1rem;
+      letter-spacing: 0.02em;
+    }
+
+    /* ── Song list ── */
+    .songs-container {
+      max-width: 760px;
+      margin: 2.5rem auto 4rem;
+      padding: 0 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    /* ── Song card ── */
+    .song-card {
+      background: #111120;
+      border: 1px solid #22223a;
+      border-radius: 18px;
+      padding: 1.5rem 1.75rem;
+      transition: border-color 0.25s, box-shadow 0.25s;
+    }
+
+    .song-card:hover {
+      border-color: #7c3aed55;
+      box-shadow: 0 0 32px #7c3aed18;
+    }
+
+    .song-number {
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #4a4a6a;
+      margin-bottom: 0.3rem;
+    }
+
+    .song-title {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #f0f0ff;
+      margin-bottom: 1.1rem;
+    }
+
+    /* ── Audio player ── */
+    .audio-wrap {
+      margin-bottom: 1.1rem;
+    }
+
+    audio {
+      width: 100%;
+      height: 40px;
+      border-radius: 10px;
+      outline: none;
+      accent-color: #a855f7;
+    }
+
+    .no-audio {
+      font-size: 0.85rem;
+      color: #4a4a6a;
+      font-style: italic;
+    }
+
+    /* ── Link buttons ── */
+    .song-links {
+      display: flex;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+    }
+
+    .link-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.45rem 1rem;
+      border-radius: 9px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.18s;
+      white-space: nowrap;
+    }
+
+    .link-btn.lyrics {
+      background: #1a1040;
+      color: #c084fc;
+      border: 1px solid #3b1d7a;
+    }
+    .link-btn.lyrics:hover {
+      background: #261655;
+      border-color: #7c3aed;
+    }
+
+    .link-btn.original {
+      background: #1a0f10;
+      color: #f87171;
+      border: 1px solid #7f2020;
+    }
+    .link-btn.original:hover {
+      background: #2d1515;
+      border-color: #ef4444;
+    }
+
+    /* ── States ── */
+    .state-msg {
+      text-align: center;
+      padding: 5rem 2rem;
+      color: #3a3a5a;
+      font-size: 1rem;
+    }
+
+    .state-msg .emoji {
+      font-size: 2rem;
+      display: block;
+      margin-bottom: 1rem;
+    }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      padding: 2rem 1rem;
+      border-top: 1px solid #111125;
+      color: #2e2e48;
+      font-size: 0.78rem;
+      letter-spacing: 0.04em;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <span class="header-icon">🎵</span>
+    <h1>Addie's AI Jams</h1>
+    <p class="subtitle">songs made with ai &mdash; with a little human soul</p>
+  </header>
+
+  <div class="songs-container" id="songs-container">
+    <div class="state-msg">
+      <span class="emoji">🎶</span>
+      Loading songs&hellip;
+    </div>
+  </div>
+
+  <footer>MADE WITH SUNO AI &nbsp;✦&nbsp; UPDATED FROM GOOGLE SHEETS</footer>
+
+  <script>
+    async function loadSongs() {
+      const container = document.getElementById('songs-container');
+
+      try {
+        const res = await fetch('songs.json?t=' + Date.now());
+        if (!res.ok) throw new Error('Failed to load songs.json');
+        const data = await res.json();
+        const songs = Array.isArray(data.songs) ? data.songs : [];
+
+        if (songs.length === 0) {
+          container.innerHTML = `
+            <div class="state-msg">
+              <span class="emoji">🎵</span>
+              No songs yet — check back soon!
+            </div>`;
+          return;
+        }
+
+        container.innerHTML = songs.map((song, i) => {
+          const title = esc(song.title || 'Untitled Song');
+          const audio = esc(song.audio || '');
+          const lyrics = esc(song.lyrics || '');
+          const original = esc(song.original || '');
+
+          const audioHtml = audio
+            ? `<div class="audio-wrap">
+                 <audio controls preload="none">
+                   <source src="${audio}">
+                   Your browser does not support the audio element.
+                   <a href="${audio}">Download audio</a>
+                 </audio>
+               </div>`
+            : `<div class="audio-wrap"><span class="no-audio">Audio coming soon</span></div>`;
+
+          const lyricsBtn = lyrics
+            ? `<a href="${lyrics}" target="_blank" rel="noopener" class="link-btn lyrics">📄 Lyrics</a>`
+            : '';
+
+          const originalBtn = original
+            ? `<a href="${original}" target="_blank" rel="noopener" class="link-btn original">🎙️ Original Recording</a>`
+            : '';
+
+          return `
+            <div class="song-card">
+              <div class="song-number">Track ${i + 1}</div>
+              <div class="song-title">${title}</div>
+              ${audioHtml}
+              <div class="song-links">${lyricsBtn}${originalBtn}</div>
+            </div>`;
+        }).join('');
+
+      } catch (err) {
+        container.innerHTML = `
+          <div class="state-msg">
+            <span class="emoji">⚠️</span>
+            Couldn't load songs. Please try again later.
+          </div>`;
+        console.error(err);
+      }
+    }
+
+    function esc(str) {
+      const d = document.createElement('div');
+      d.appendChild(document.createTextNode(str));
+      return d.innerHTML;
+    }
+
+    loadSongs();
+  </script>
+</body>
+</html>

@@ -1,0 +1,75 @@
+name: Sync Songs from Google Sheets
+
+on:
+  schedule:
+    - cron: '0 * * * *'   # every hour
+  workflow_dispatch:       # also runnable manually from Actions tab
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Fetch sheet and update songs.json
+        env:
+          SHEET_CSV_URL: ${{ vars.SHEET_CSV_URL }}
+        run: |
+          python3 - << 'PYEOF'
+          import csv, json, os, sys, urllib.request
+
+          url = os.environ.get("SHEET_CSV_URL", "").strip()
+          if not url:
+              print("ERROR: SHEET_CSV_URL is not set.")
+              print("Go to: Settings → Secrets and variables → Actions → Variables")
+              print("Add a variable named SHEET_CSV_URL with your published Google Sheet CSV link.")
+              sys.exit(1)
+
+          print(f"Fetching: {url}")
+          with urllib.request.urlopen(url, timeout=15) as r:
+              content = r.read().decode("utf-8")
+
+          songs = []
+          reader = csv.reader(content.splitlines())
+          rows = list(reader)
+
+          # Skip header row (row 0), iterate the rest in order
+          for row in rows[1:]:
+              # Pad short rows
+              while len(row) < 4:
+                  row.append("")
+              title    = row[0].strip()
+              audio    = row[1].strip()
+              lyrics   = row[2].strip()
+              original = row[3].strip()
+
+              # Skip completely blank rows
+              if not any([title, audio, lyrics, original]):
+                  continue
+
+              songs.append({
+                  "title":    title,
+                  "audio":    audio,
+                  "lyrics":   lyrics,
+                  "original": original
+              })
+
+          result = json.dumps({"songs": songs}, indent=2, ensure_ascii=False)
+          with open("songs.json", "w", encoding="utf-8") as f:
+              f.write(result + "\n")
+
+          print(f"Done — {len(songs)} song(s) written to songs.json")
+          PYEOF
+
+      - name: Commit and push if songs.json changed
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git diff --quiet songs.json && echo "No changes." || \
+            (git add songs.json && \
+             git commit -m "🎵 Sync songs from Google Sheet [skip ci]" && \
+             git push)
