@@ -86,11 +86,57 @@
       margin-bottom: 0.3rem;
     }
 
+    .song-title-row {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      margin-bottom: 1.1rem;
+    }
+
     .song-title {
       font-size: 1.2rem;
       font-weight: 700;
       color: #f0f0ff;
-      margin-bottom: 1.1rem;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .share-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      text-decoration: none;
+      color: #6b6b90;
+      background: transparent;
+      border: 1px solid transparent;
+      flex-shrink: 0;
+      cursor: pointer;
+      transition: color 0.18s, background 0.18s, border-color 0.18s;
+    }
+    .share-link:hover {
+      color: #c084fc;
+      background: #1a1040;
+      border-color: #3b1d7a;
+    }
+    .share-link.copied {
+      color: #4ade80;
+      background: #0a2a14;
+      border-color: #14532d;
+    }
+
+    .song-card.highlight {
+      border-color: #a855f7;
+      animation: highlight-pulse 2.4s ease-out;
+    }
+
+    @keyframes highlight-pulse {
+      0%   { box-shadow: 0 0 0       rgba(168, 85, 247, 0); }
+      20%  { box-shadow: 0 0 36px    rgba(168, 85, 247, 0.45); }
+      100% { box-shadow: 0 0 36px    rgba(168, 85, 247, 0); }
     }
 
     /* ── Media player (audio + video) ── */
@@ -261,6 +307,15 @@
         .replace(/>/g, '&gt;');
     }
 
+    // Build a URL-safe slug from a song title for deep-linking via hash.
+    // "Stone Beneath River" -> "stone-beneath-river"
+    function slugify(str) {
+      return String(str)
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '') || 'track';
+    }
+
     // Allow http(s) absolute URLs and safe relative paths (audio/ folder).
     // Blocks javascript:, data:, vbscript:, and any other protocol injection.
     function safeUrl(str) {
@@ -307,8 +362,20 @@
           return;
         }
 
+        // Track which slugs we've used so duplicate titles still get unique
+        // ids (e.g. two "Untitled" tracks become `untitled` and `untitled-2`).
+        const usedSlugs = new Set();
+        function uniqueSlug(base) {
+          let s = base, n = 2;
+          while (usedSlugs.has(s)) s = base + '-' + n++;
+          usedSlugs.add(s);
+          return s;
+        }
+
         container.innerHTML = songs.map((song, i) => {
-          const title    = escText(song.title    || 'Untitled Song');
+          const rawTitle = song.title || 'Untitled Song';
+          const title    = escText(rawTitle);
+          const slug     = uniqueSlug(slugify(rawTitle));
           const audio    = safeUrl(song.audio    || '');
           const video    = safeUrl(song.video    || '');
           const lyrics   = safeUrl(song.lyrics   || '');
@@ -375,9 +442,12 @@
             : '';
 
           return `
-            <div class="song-card">
+            <div class="song-card" id="${escAttr(slug)}">
               <div class="song-number">Track ${i + 1}</div>
-              <div class="song-title">${title}</div>
+              <div class="song-title-row">
+                <div class="song-title">${title}</div>
+                <a href="#${escAttr(slug)}" class="share-link" title="Copy link to this track" aria-label="Copy link to this track">🔗</a>
+              </div>
               ${mediaHtml}
               <div class="song-links">${lyricsBtn}${originalBtn}</div>
               ${sourcesHtml}
@@ -393,6 +463,52 @@
             allMedia.forEach(other => {
               if (other !== el && !other.paused) other.pause();
             });
+          });
+        });
+
+        // Deep-linking: scroll to and highlight the targeted track.
+        function focusTrackFromHash() {
+          if (!location.hash) return;
+          const id = decodeURIComponent(location.hash.slice(1));
+          const target = document.getElementById(id);
+          if (!target) return;
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          target.classList.remove('highlight');
+          // Force a reflow so the animation re-runs on repeat clicks.
+          void target.offsetWidth;
+          target.classList.add('highlight');
+          setTimeout(() => target.classList.remove('highlight'), 2400);
+        }
+
+        // Run once on initial load (give the browser a tick to lay out).
+        if (location.hash) setTimeout(focusTrackFromHash, 50);
+
+        // Re-run when the hash changes (e.g. user clicks the 🔗 button).
+        window.addEventListener('hashchange', focusTrackFromHash);
+
+        // Clicking a share link copies the absolute URL with the hash so
+        // the user can paste it into Slack / a doc / etc.
+        container.querySelectorAll('.share-link').forEach(link => {
+          link.addEventListener('click', e => {
+            e.preventDefault();
+            const slug = link.getAttribute('href').slice(1);
+            const url = location.origin + location.pathname + '#' + slug;
+            // Update the URL bar (no history entry) so reload deep-links work.
+            history.replaceState(null, '', '#' + slug);
+            const showCopied = () => {
+              link.classList.add('copied');
+              link.textContent = '✓';
+              setTimeout(() => {
+                link.classList.remove('copied');
+                link.textContent = '🔗';
+              }, 1500);
+            };
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              navigator.clipboard.writeText(url).then(showCopied).catch(() => showCopied());
+            } else {
+              showCopied();
+            }
+            focusTrackFromHash();
           });
         });
 
