@@ -4,6 +4,16 @@
       "id": "apr-26-recording",
       "title": "Sound Inspiration",
       "audio": "audio/sources/apr-26-recording.mp3"
+    },
+    {
+      "id": "untitled-source",
+      "title": "Sound Inspiration",
+      "audio": "audio/sources/untitled-source.mp3"
+    },
+    {
+      "id": "cosmic-chicken-source",
+      "title": "Sound Inspiration",
+      "audio": "audio/sources/cosmic-chicken-source.mp3"
     }
   ],
   "songs": [
@@ -21,7 +31,7 @@
       "audio": "",
       "lyrics": "",
       "original": "",
-      "sources": []
+      "sources": ["untitled-source"]
     },
     {
       "title": "Bass Spillage",
@@ -46,6 +56,14 @@
       "lyrics": "",
       "original": "",
       "sources": ["apr-26-recording"]
+    },
+    {
+      "title": "Cosmic Chicken",
+      "video": "audio/cosmic-chicken.mp4",
+      "audio": "",
+      "lyrics": "",
+      "original": "",
+      "sources": ["cosmic-chicken-source"]
     }
   ]
 }
