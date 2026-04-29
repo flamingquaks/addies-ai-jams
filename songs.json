@@ -1,39 +1,51 @@
 {
+  "sources": [
+    {
+      "id": "apr-26-recording",
+      "title": "Sound Inspiration",
+      "audio": "audio/sources/apr-26-recording.mp3"
+    }
+  ],
   "songs": [
     {
       "title": "Prompt Pipelines",
       "video": "audio/prompt-pipelines.mp4",
       "audio": "",
       "lyrics": "",
-      "original": ""
+      "original": "",
+      "sources": []
     },
     {
       "title": "Untitled",
       "video": "audio/untitled.mp4",
       "audio": "",
       "lyrics": "",
-      "original": ""
+      "original": "",
+      "sources": []
     },
     {
       "title": "Bass Spillage",
       "video": "audio/bass-spillage.mp4",
       "audio": "",
       "lyrics": "",
-      "original": ""
+      "original": "",
+      "sources": []
     },
     {
       "title": "QuackMoo",
       "video": "audio/quackmoo.mp4",
       "audio": "",
       "lyrics": "",
-      "original": ""
+      "original": "",
+      "sources": []
     },
     {
       "title": "Stone Beneath River",
       "video": "audio/stone-beneath-river.mp4",
       "audio": "",
       "lyrics": "",
-      "original": ""
+      "original": "",
+      "sources": ["apr-26-recording"]
     }
   ]
 }

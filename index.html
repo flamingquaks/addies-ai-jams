@@ -164,6 +164,40 @@
       border-color: #ef4444;
     }
 
+    /* ── Sources / inspiration ── */
+    .sources-section {
+      margin-top: 1.1rem;
+      padding-top: 1.1rem;
+      border-top: 1px dashed #22223a;
+    }
+
+    .sources-label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #6b6b90;
+      margin-bottom: 0.7rem;
+    }
+
+    .source-item + .source-item {
+      margin-top: 0.85rem;
+    }
+
+    .source-title {
+      font-size: 0.85rem;
+      color: #a0a0c0;
+      margin-bottom: 0.4rem;
+    }
+
+    .source-item audio {
+      width: 100%;
+      height: 36px;
+      border-radius: 8px;
+      outline: none;
+      accent-color: #f472b6;
+    }
+
     /* ── States ── */
     .state-msg {
       text-align: center;
@@ -255,6 +289,15 @@
         const data = await res.json();
         const songs = Array.isArray(data.songs) ? data.songs : [];
 
+        // Build a lookup of shared sources by id (top-level "sources" library).
+        // Songs reference these via a `sources: ["id", ...]` array, so one
+        // source file can be associated with multiple tracks.
+        const sourcesLib = Array.isArray(data.sources) ? data.sources : [];
+        const sourcesById = {};
+        sourcesLib.forEach(s => {
+          if (s && typeof s.id === 'string') sourcesById[s.id] = s;
+        });
+
         if (songs.length === 0) {
           container.innerHTML = `
             <div class="state-msg">
@@ -305,12 +348,39 @@
             ? `<a href="${escAttr(original)}" target="_blank" rel="noopener noreferrer" class="link-btn original">🎙️ Original Recording</a>`
             : '';
 
+          // Resolve this song's source ids against the shared library and
+          // render a small audio player for each one. Unknown ids are skipped.
+          const songSourceIds = Array.isArray(song.sources) ? song.sources : [];
+          const sourceItems = songSourceIds.map(id => {
+            const src = sourcesById[id];
+            if (!src) return '';
+            const srcTitle = escText(src.title || 'Source');
+            const srcAudio = safeUrl(src.audio || '');
+            if (!srcAudio) return '';
+            return `
+              <div class="source-item">
+                <div class="source-title">${srcTitle}</div>
+                <audio controls preload="none">
+                  <source src="${escAttr(srcAudio)}">
+                  <a href="${escAttr(srcAudio)}">Download audio</a>
+                </audio>
+              </div>`;
+          }).join('');
+
+          const sourcesHtml = sourceItems
+            ? `<div class="sources-section">
+                 <div class="sources-label">🌱 Inspiration</div>
+                 ${sourceItems}
+               </div>`
+            : '';
+
           return `
             <div class="song-card">
               <div class="song-number">Track ${i + 1}</div>
               <div class="song-title">${title}</div>
               ${mediaHtml}
               <div class="song-links">${lyricsBtn}${originalBtn}</div>
+              ${sourcesHtml}
             </div>`;
         }).join('');
 
