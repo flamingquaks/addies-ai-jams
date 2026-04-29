@@ -384,6 +384,18 @@
             </div>`;
         }).join('');
 
+        // Single-playback: when any audio/video starts, pause every other
+        // audio/video on the page. Includes both song players and source
+        // (inspiration) players.
+        const allMedia = container.querySelectorAll('audio, video');
+        allMedia.forEach(el => {
+          el.addEventListener('play', () => {
+            allMedia.forEach(other => {
+              if (other !== el && !other.paused) other.pause();
+            });
+          });
+        });
+
       } catch (err) {
         container.innerHTML = `
           <div class="state-msg">
