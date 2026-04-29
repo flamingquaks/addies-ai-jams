@@ -14,6 +14,11 @@
       "id": "cosmic-chicken-source",
       "title": "Sound Inspiration",
       "audio": "audio/sources/cosmic-chicken-source.mp3"
+    },
+    {
+      "id": "close-enough-source",
+      "title": "Sound Inspiration",
+      "audio": "audio/sources/close-enough-source.mp3"
     }
   ],
   "songs": [
@@ -80,6 +85,14 @@
       "lyrics": "",
       "original": "",
       "sources": []
+    },
+    {
+      "title": "Close Enough",
+      "video": "audio/close-enough.mp4",
+      "audio": "",
+      "lyrics": "",
+      "original": "",
+      "sources": ["close-enough-source"]
     }
   ]
 }
